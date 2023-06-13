@@ -1,0 +1,56 @@
+﻿@page "/"
+@using BrowerBlazorGraph.Client.Models;
+@using System.Numerics;
+
+<GraphComponent Graph=@graph RenderIntelligently=@renderIntelligently></GraphComponent>
+
+<button @onclick=OnClick>+</button>
+
+<button @onclick="FlipRendering">@buttonText</button>
+
+@code {
+    public static int RendersSinceDataPoint = 0;
+    private Graph graph = new();
+    private Random random = new Random();
+
+    private bool renderIntelligently = false;
+    private string buttonText => renderIntelligently ? "Turn Off Intelligent Rendering" : "Turn On Intelligent Rendering";
+
+    private void FlipRendering()
+    {
+        renderIntelligently = !renderIntelligently;
+    }
+
+    private void OnClick()
+    {
+        graph.Values.Add(new Vector2(graph.Values.Count() * 5, RendersSinceDataPoint * 3));
+        RendersSinceDataPoint = 0;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            new Task(async () =>
+            {
+                while (true) 
+                {
+                    await Task.Delay(5);
+                    StateHasChanged();
+                }
+            }).Start();
+
+            new Task(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(150);
+                    graph.Values.Add(new Vector2(graph.Values.Count() * 5, RendersSinceDataPoint * 5));
+                    RendersSinceDataPoint = 0;
+                    StateHasChanged();
+                }
+            }).Start();
+        }
+    }
+}
